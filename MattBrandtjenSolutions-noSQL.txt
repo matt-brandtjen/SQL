@@ -1,0 +1,148 @@
+use classicmodels;
+
+-- 1
+select * from employees;
+SELECT firstName, count(lastName), jobTitle, lastName
+FROM employees 
+where lastName != ''
+group by lastName
+having count(lastName) = 1;
+
+
+
+-- 2
+SELECT * FROM customers ORDER BY contactLastName ASC;
+
+db.Collection1.find().sort({contactLastName:-1});
+
+-- 3
+SELECT * from offices;
+SELECT * from employees;
+SELECT * from employees WHERE officeCode IN ('1', '2', '3');
+
+db.Collection1.find({territory: 'NA'});
+
+-- 4
+select * from orderdetails;
+select orderLineNumber, sum(priceEach) from orderdetails group by orderLineNumber with rollup order by sum(priceEach);
+
+
+
+-- 5
+select * from employees where extension like '%x2%';
+
+db.Emp_Cust_Office_Payments.find({extension:{$regex:'x2'}},{_id:0,firstName:1,lastName:1,extension:1});
+
+-- 6
+select * from employees where jobTitle like '%Sales Rep%';
+
+db.Emp_Cust_Office_Payments.find({jobTitle:'Sales Rep'},{_id:0,firstName:1,lastName:1,jobTitle:1});
+
+-- 7
+select * from employees where substring(lastName, -3) like '%son%';
+
+db.Collection1.find({lastName: {$regex: "son$"}});
+
+-- 8
+select city, count(city) as population
+from offices join employees using (officeCode)
+group by city
+order by count(city) desc
+limit 2;
+
+db.Collection1.find({officeCode : {$in: ['1','4']}},{_id:1,officeCode:1,firstName:1,lastName:1}).sort({officeCode:-1}).limit(2).skip(86);
+
+-- 9
+select customerName, state, creditLimit
+from customers
+where state = 'CA' and creditLimit > 100000;
+
+db.Collection1.find({$and:[{$where: "this.creditLimit > 100000"}, {state: 'CA'}]});
+
+-- 10
+select customerName, country
+from customers
+where country = 'Singapore' or country = 'France';
+
+db.Collection1.find({$or : [{country: "France"}, {country : "Singapore"}] });
+
+
+-- 11
+select * from employees
+where officeCode <= 4;
+
+db.Collection1.find({officeCode: {$lte: '4'}});
+
+-- 12
+select customerName, status from orders join customers using (customerNumber)
+where status = 'On Hold';
+
+db.Collection2.find({status: 'On Hold'});
+
+-- 13
+select * from employees
+where reportsTo is NULL;
+
+db.Collection1.find({reportsTo: null});
+
+-- 14 ???
+-- select distinct lastName from employees;
+
+
+
+-- 15 ???
+select distinct city, state
+from customers;
+
+
+
+-- 16
+select productName, productCode, priceEach, quantityOrdered, max(priceEach * quantityOrdered) AS maxSold from orderdetails join products using(productCode);
+
+
+
+-- 17
+-- select * from customers
+-- where customer_id = ANY
+-- (select customer
+
+
+
+-- 18
+select customerName, shippedDate, requiredDate from orders join customers using(customerNumber)
+where datediff(requiredDate, shippedDate) < 5;
+
+
+
+-- 19 - alias?
+select orderNumber, customerName from customers left join orders on customers.customerNumber = orders.customerNumber;
+
+
+
+-- 20
+select * from employees right join customers on customers.salesRepEmployeeNumber = employees.employeeNumber;
+
+
+
+-- 21 ???
+select * from orders;
+select * from orderdetails;
+
+
+
+-- 22 ???
+-- select c.customerName, c.city, d.city from customers on(c.city = d.city);
+
+
+
+-- 23
+select customerName, productName, orderNumber, productCode, quantityOrdered, priceEach, orderLineNumber from customers join orders using(customerNumber) join orderdetails using(orderNumber) join products using (productCode);
+
+
+
+-- 24
+select priceEach from orderdetails join products using(productCode) where productCode = 'S10_1678' and priceEach < MSRP;
+
+db.Collection2.find({$and:[{$where: "this.priceEach < this.MSRP"}, {productCode:'S10_1678'}]});
+
+
